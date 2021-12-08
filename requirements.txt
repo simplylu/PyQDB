@@ -1,0 +1,2 @@
+requests==2.26.0
+sqlvalidator==0.0.17
