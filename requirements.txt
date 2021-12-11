@@ -1,2 +1,3 @@
+pandas==1.3.4
 requests==2.26.0
 sqlvalidator==0.0.17

@@ -5,12 +5,14 @@
 # Date:         08.12.2021
 # Version:      0.0.1
 
+from posixpath import sep
 from typing import Any, Union
 import requests
 from qdb_api import API, restricted_chars
 import sys
 import os
 from urllib.parse import quote_plus
+import pandas as pd
 
 
 class QuestDB:
@@ -112,7 +114,7 @@ class QuestDB:
              limit: API["exec"]["limit"]["type"] = API["exec"]["limit"]["default"],
              nm: API["exec"]["nm"]["type"] = API["exec"]["nm"]["default"],
              query: API["exec"]["query"]["type"] = API["exec"]["query"]["default"],
-             timings: API["exec"]["timings"]["type"] = API["exec"]["timings"]["default"]) -> dict:
+             timings: API["exec"]["timings"]["type"] = API["exec"]["timings"]["default"]) -> list:
         """`/exec` compiles and executes the `SQL` query supplied as a parameter and returns a JSON response.
         `/exec` is expecting an HTTP `GET` request with following query parameters:
 
@@ -159,7 +161,9 @@ class QuestDB:
 
     def exp(self,
             limit: API["exp"]["limit"]["type"] = API["exp"]["limit"]["default"],
-            query: API["exp"]["query"]["type"] = API["exp"]["query"]["default"]) -> dict:
+            query: API["exp"]["query"]["type"] = API["exp"]["query"]["default"],
+            output: API["exp"]["format"]["type"] = API["exp"]["format"]["default"],
+            separator: str = ",") -> Union[pd.DataFrame, str]:
         """This endpoint allows you to pass url-encoded queries but the request body is returned in a tabular form to be saved and reused as opposed to JSON.
 
         Args:
@@ -167,11 +171,15 @@ class QuestDB:
 
             `query (str)`: URL encoded query text. It can be multi-line.
 
+            `output (str)`: Format to export data to. `csv` and `pandas` DataFrame supported. Default is `csv`.
+
+            `separator (str)`: CSV seperator (needed to properly format export data)
+
         Returns:
-            dict: JSON response
+            Union[pd.DataFrame, str]: Exported data in requested format.
         """
         # API URL
-        url: str = f"{self.url}/exec?"
+        url: str = f"{self.url}/exp?"
 
         # Structured input parameters/values
         parameters: dict = {
@@ -192,7 +200,41 @@ class QuestDB:
         # send request
         res: requests.Response = self.session.request(
             API["exec"]["method"], url=url)
-        return res.json()
+
+        # output as CSV
+        if output == "csv":
+            return res.text
+        # output as Pandas DataFrame
+        elif output == "pandas":
+            csv = res.text.split("\r\n")
+            data = []
+            columns = [i.strip('"').strip(" ")
+                       for i in csv[0].split(separator)]
+            for line in csv[1:]:
+                if line == '':
+                    continue
+                t = [self._assign_vartype(i.strip('"').strip(" "))
+                     for i in line.split(separator)]
+                data.append(t)
+
+            df = pd.DataFrame(data, columns=columns)
+            return df
+
+    def _assign_vartype(self, value: str) -> Any:
+        """Assign correct variable type to var
+
+        Args:
+            value (str): original value
+
+        Returns:
+            Any: casted value
+        """
+        for t in [float, int, str]:
+            try:
+                casted = t(value)
+                return casted
+            except:
+                pass
 
     def _not_compliant(self, route: str, parameter: str):
         """Print error message if parameter is not compliant to API requirements

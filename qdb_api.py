@@ -146,5 +146,12 @@ API = {
             "type": str,
             "description": "URL encoded query text. It can be multi-line."
         },
+        "format": {
+            "required": False,
+            "default": "csv",
+            "check": lambda x: x in ["csv", "pandas"],
+            "type": str,
+            "description": "Format to export data to. CSV and Pandas DataFrame supported."
+        }
     }
 }

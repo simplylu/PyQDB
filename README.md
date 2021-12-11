@@ -50,4 +50,8 @@ res = qdb.exec(query="SELECT * FROM PyQDB")
 res = qdb.exp(query="SELECT * FROM PyQDB")
 ```
 
+Thanks to [Issue #1](https://github.com/js-on/PyQDB/issues/1) you can now choose between the following output formats:
+- CSV: `qdb.exp(query="...", output="csv")`
+- DataFrame: `qdb.exp(query="...", output="pandas"`
+
 > See `qdb_api.py` or [API reference](https://questdb.io/docs/reference/api/rest/#exp---export-data) for all possible parameters.
