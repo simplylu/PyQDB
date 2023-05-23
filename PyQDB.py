@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # File:         PyQDB.py
 # Description:  Main class - QuestDB API wrapper for Python
-# Author:       Jakob Schaffarczyk <jakobs[᠎at]js-on.de>
+# Author:       simplylu
 # Date:         08.12.2021
 # Version:      0.0.1
 
